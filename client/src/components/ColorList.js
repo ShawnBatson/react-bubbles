@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { axiosWithAuth } from "../utils/axiosWithAuth";
 
 const initialColor = {
   color: "",
@@ -10,14 +11,29 @@ const ColorList = ({ colors, updateColors }) => {
   console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  const [addedColor, setAddedColor] = useState(initialColor);
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
+    console.log("editing color");
   };
 
-  const saveEdit = e => {
-    e.preventDefault();
+  const saveEdit = event => {
+    event.preventDefault();
+    const color = colors.find(item => colorToEdit.code.hex === item.code.hex);
+    axiosWithAuth()
+      .put(`/colors/${color}`, colorToEdit)
+      .then(res => {
+        console.log("this is the put request", res.data);
+        setEditing(false);
+        updateColors([...colors, res.data]);
+        // window.location.href = `/BubblePage`;
+      })
+      .catch(err => {
+        console.log(err);
+      });
+
     // Make a put request to save your updated color
     // think about where will you get the id from...
     // where is is saved right now?
@@ -34,12 +50,14 @@ const ColorList = ({ colors, updateColors }) => {
         {colors.map(color => (
           <li key={color.color} onClick={() => editColor(color)}>
             <span>
-              <span className="delete" onClick={e => {
-                    e.stopPropagation();
-                    deleteColor(color)
-                  }
-                }>
-                  x
+              <span
+                className="delete"
+                onClick={e => {
+                  e.stopPropagation();
+                  deleteColor(color);
+                }}
+              >
+                x
               </span>{" "}
               {color.color}
             </span>
