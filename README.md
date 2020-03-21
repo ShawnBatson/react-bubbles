@@ -98,6 +98,7 @@ Build a login form to authenticate your users.
 
 - [ x] Build a form at the bottom of `ColorList.js` to add new colors to the colors data
 
+XXX FINISHED AT 8:05 central time, an hour early!! XXX
 **Data Visualization**
 
 - [ ] Look at [Potion JS](https://potion.js.org/). This is the library used to display the color data
