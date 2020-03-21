@@ -33,14 +33,22 @@ const ColorList = ({ colors, updateColors }) => {
       .catch(err => {
         console.log(err);
       });
-
-    // Make a put request to save your updated color
-    // think about where will you get the id from...
-    // where is is saved right now?
   };
-
   const deleteColor = color => {
-    // make a delete request to delete this color
+    axiosWithAuth()
+      .delete(`/colors/${color.id}`)
+      .then(res => {
+        console.log("this is inside the delete color function", res);
+        setEditing(false);
+      })
+      .catch(err => {
+        console.log("this is in the delete function, error", err);
+      });
+    updateColors(
+      colors.filter(item => {
+        return item.id !== color.id;
+      })
+    );
   };
 
   return (
