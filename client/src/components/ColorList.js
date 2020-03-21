@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
 
 const initialColor = {
@@ -51,6 +50,23 @@ const ColorList = ({ colors, updateColors }) => {
     );
   };
 
+  const changeHandler = event => {
+    setAddedColor({ ...addedColor, [event.target.name]: event.target.value });
+  };
+
+  const newColor = event => {
+    event.preventDefault();
+    axiosWithAuth()
+      .post("/colors", addedColor)
+      .then(res => {
+        console.log("this is in newColor", res);
+      })
+      .catch(err => {
+        console.log("This is in newColor error", err);
+      });
+
+    updateColors([...colors, { ...addedColor, id: Date.now() }]);
+  };
   return (
     <div className="colors-wrap">
       <p>colors</p>
@@ -106,8 +122,28 @@ const ColorList = ({ colors, updateColors }) => {
           </div>
         </form>
       )}
+      <form onSubmit={newColor}>
+        <h4>Add another color!</h4>
+        <input
+          type="text"
+          name="color"
+          onChange={changeHandler}
+          placeholder="Title"
+        />
+        <input
+          type="text"
+          name="addedColor.code.hex"
+          onChange={event => {
+            setAddedColor({
+              ...addedColor,
+              code: { hex: event.target.value }
+            });
+          }}
+          placeholder="Hex"
+        />
+        <button type="submit">Add</button>
+      </form>
       <div className="spacer" />
-      {/* stretch - build another form here to add a color */}
     </div>
   );
 };
