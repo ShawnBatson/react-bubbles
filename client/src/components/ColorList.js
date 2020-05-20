@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { axiosWithAuth } from "../utils/axiosWithAuth";
 
 const initialColor = {
   color: "",
@@ -10,23 +10,63 @@ const ColorList = ({ colors, updateColors }) => {
   console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  const [addedColor, setAddedColor] = useState(initialColor);
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
+    console.log("editing color");
   };
 
-  const saveEdit = e => {
-    e.preventDefault();
-    // Make a put request to save your updated color
-    // think about where will you get the id from...
-    // where is is saved right now?
+  const saveEdit = event => {
+    event.preventDefault();
+    const color = colors.find(item => colorToEdit.code.hex === item.code.hex);
+    axiosWithAuth()
+      .put(`/colors/${color}`, colorToEdit)
+      .then(res => {
+        console.log("this is the put request", res.data);
+        setEditing(false);
+        updateColors([...colors, res.data]);
+        // window.location.href = `/BubblePage`;
+      })
+      .catch(err => {
+        console.log(err);
+      });
   };
-
   const deleteColor = color => {
-    // make a delete request to delete this color
+    axiosWithAuth()
+      .delete(`/colors/${color.id}`)
+      .then(res => {
+        console.log("this is inside the delete color function", res);
+        setEditing(false);
+      })
+      .catch(err => {
+        console.log("this is in the delete function, error", err);
+      });
+    updateColors(
+      colors.filter(item => {
+        return item.id !== color.id;
+      })
+    );
   };
 
+  const changeHandler = event => {
+    setAddedColor({ ...addedColor, [event.target.name]: event.target.value });
+  };
+
+  const newColor = event => {
+    event.preventDefault();
+    axiosWithAuth()
+      .post("/colors", addedColor)
+      .then(res => {
+        console.log("this is in newColor", res);
+      })
+      .catch(err => {
+        console.log("This is in newColor error", err);
+      });
+
+    updateColors([...colors, { ...addedColor, id: Date.now() }]);
+  };
   return (
     <div className="colors-wrap">
       <p>colors</p>
@@ -34,12 +74,14 @@ const ColorList = ({ colors, updateColors }) => {
         {colors.map(color => (
           <li key={color.color} onClick={() => editColor(color)}>
             <span>
-              <span className="delete" onClick={e => {
-                    e.stopPropagation();
-                    deleteColor(color)
-                  }
-                }>
-                  x
+              <span
+                className="delete"
+                onClick={e => {
+                  e.stopPropagation();
+                  deleteColor(color);
+                }}
+              >
+                x
               </span>{" "}
               {color.color}
             </span>
@@ -80,8 +122,28 @@ const ColorList = ({ colors, updateColors }) => {
           </div>
         </form>
       )}
+      <form onSubmit={newColor}>
+        <h4>Add another color!</h4>
+        <input
+          type="text"
+          name="color"
+          onChange={changeHandler}
+          placeholder="Title"
+        />
+        <input
+          type="text"
+          name="addedColor.code.hex"
+          onChange={event => {
+            setAddedColor({
+              ...addedColor,
+              code: { hex: event.target.value }
+            });
+          }}
+          placeholder="Hex"
+        />
+        <button type="submit">Add</button>
+      </form>
       <div className="spacer" />
-      {/* stretch - build another form here to add a color */}
     </div>
   );
 };
